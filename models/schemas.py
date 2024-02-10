@@ -5,6 +5,7 @@ from datetime import datetime
 class itemSchema(BaseModel):
     _id: Optional[str] = None
     name: Optional[float] = None
+    description: Optional[str] = None
     cals: Optional[float] = None
     carbs: Optional[float] = None
     fat: Optional[float] = None
@@ -18,11 +19,20 @@ class itemSchema(BaseModel):
 class restaurantSchema(BaseModel):
     _id: Optional[str] = None
     name: Optional[str] = None
+    location: Optional[str] = None
+    logo: Optional[str] = None
     items: List[itemSchema] = []
 
 class userSchema(BaseModel):
-    # user data
     _id: Optional[str] = None
+
+    # google stuff
+    sub: Optional[str]
+    name: Optional[str]
+    email: Optional[str]
+    picture: Optional[str] = None
+
+    # user data
     age: Optional[float] = None
     weight: Optional[float] = None
     height: Optional[float] = None
@@ -42,10 +52,10 @@ class userSchema(BaseModel):
     dailyprotein: Optional[float] = None
     
 
-# class userSchema(BaseModel):
-#     _id: Optional[str] = None
-#     sub: Optional[str]
-#     name: Optional[str]
-#     email: Optional[str]
-#     picture: Optional[str] = None
+class userSchema(BaseModel):
+    _id: Optional[str] = None
+    sub: Optional[str]
+    name: Optional[str]
+    email: Optional[str]
+    picture: Optional[str] = None
     
