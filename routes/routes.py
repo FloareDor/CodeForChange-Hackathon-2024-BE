@@ -4,9 +4,13 @@ from starlette.requests import Request
 from fastapi.responses import JSONResponse
 from utils.authenticator import Authenticator
 
-from utils.scripts import initDB
+from handlers.restaurants import RestaurantHandler
+
+from utils.scripts import initDB, insertSampleData
 
 db = initDB()
+insertSampleData("data/Filtered_Rest_Dataset.csv", db)
+restaurantHandler = RestaurantHandler(db)
 authenticator = Authenticator(db)
 
 # rate limit imports
@@ -35,8 +39,8 @@ async def health(request: Request):
 
 @router.get("/restaurants", response_model=List[Dict[str, Any]])
 @limiter.limit("30/minute")
-async def health(request: Request):
-    return JSONResponse({"status": "ok"}, status_code=200)
+async def getRestaurants(request: Request):
+    return await restaurantHandler.get_all_restaurants(request)
 
 @router.get("/{restaurant}/items", response_model=List[Dict[str, Any]])
 @limiter.limit("30/minute")
