@@ -42,6 +42,11 @@ async def health(request: Request):
 async def getRestaurants(request: Request):
     return await restaurantHandler.get_all_restaurants(request)
 
+@router.get("/search-restaurants", response_model=List[Dict[str, Any]])
+@limiter.limit("30/minute")
+async def searchRestaurants(request: Request):
+    return await restaurantHandler.search_restaurants(request)
+
 @router.get("/{restaurant}/items", response_model=List[Dict[str, Any]])
 @limiter.limit("30/minute")
 async def health(request: Request):

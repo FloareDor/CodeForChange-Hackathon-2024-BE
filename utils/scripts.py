@@ -40,8 +40,9 @@ def insertSampleData(file_path, db):
 		restaurants = {}
 		for _, row in df.iterrows():
 			item = {
-				"name": row['item_name'],
-				"description": row['item_description'],
+				
+				"name": str(row['item_name']).lower(),
+				"description": str(row['item_description']).lower(),
 				"cals": row['calories'],
 				"carbs": row['carbs'],
 				"fat": row['fat'],
@@ -51,7 +52,8 @@ def insertSampleData(file_path, db):
 				restaurants[row['restaurant']]['items'].append(item)
 			else:
 				restaurants[row['restaurant']] = {
-					"name": row['restaurant'],
+					"_id": ObjectId(),
+					"name": str(row['restaurant']).lower(),
 					"location": row['location'],
 					"items": [item]
 				}

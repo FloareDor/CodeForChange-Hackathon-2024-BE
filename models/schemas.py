@@ -52,10 +52,10 @@ class userSchema(BaseModel):
     dailyprotein: Optional[float] = None
     
 
-class userSchema(BaseModel):
-    _id: Optional[str] = None
-    sub: Optional[str]
-    name: Optional[str]
-    email: Optional[str]
-    picture: Optional[str] = None
+# class userSchema(BaseModel):
+#     _id: Optional[str] = None
+#     sub: Optional[str]
+#     name: Optional[str]
+#     email: Optional[str]
+#     picture: Optional[str] = None
     
