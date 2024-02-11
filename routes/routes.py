@@ -5,12 +5,16 @@ from fastapi.responses import JSONResponse
 from utils.authenticator import Authenticator
 
 from handlers.restaurants import RestaurantHandler
+from handlers.userHandler import UserHandler
 
 from utils.scripts import initDB, insertSampleData
 
+from fastapi import Query
+
 db = initDB()
-insertSampleData("data/Filtered_Rest_Dataset.csv", db)
+insertSampleData("data/Final_data.csv", db)
 restaurantHandler = RestaurantHandler(db)
+userHandler = UserHandler(db)
 authenticator = Authenticator(db)
 
 # rate limit imports
@@ -32,25 +36,28 @@ async def health(request: Request):
 async def verifyUser(request: Request):
     return await authenticator.Verify_user(request)
 
-@router.get("/menu", response_model=List[Dict[str, Any]])
+@router.post("/onboarding")
 @limiter.limit("30/minute")
-async def health(request: Request):
-    return JSONResponse({"status": "ok"}, status_code=200)
+async def onboard(request: Request, authorization: str = Header(None)):
+    return await userHandler.putFitnessDetails(request, authorization=authorization)
 
 @router.get("/restaurants", response_model=List[Dict[str, Any]])
 @limiter.limit("30/minute")
-async def getRestaurants(request: Request):
-    return await restaurantHandler.get_all_restaurants(request)
-
-@router.get("/search-restaurants", response_model=List[Dict[str, Any]])
-@limiter.limit("30/minute")
-async def searchRestaurants(request: Request):
-    return await restaurantHandler.search_restaurants(request)
+async def getRestaurants(request: Request, query: str = Query(None)):
+    if query:
+        return await restaurantHandler.search_restaurants(request, query)
+    else:
+        return await restaurantHandler.get_all_restaurants(request)
 
 @router.get("/{restaurant}/items", response_model=List[Dict[str, Any]])
 @limiter.limit("30/minute")
 async def health(request: Request):
     return JSONResponse({"status": "ok"}, status_code=200)
+
+@router.post("/healthify-menu")
+@limiter.limit("30/minute")
+async def onboard(request: Request, authorization: str = Header(None)):
+    return await userHandler.healthifyMenu(request, authorization=authorization)
 
 # @router.get("/add-to-favourites", response_model=List[Dict[str, Any]])
 # @limiter.limit("30/minute")

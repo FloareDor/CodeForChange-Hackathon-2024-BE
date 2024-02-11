@@ -23,20 +23,21 @@ class restaurantSchema(BaseModel):
     logo: Optional[str] = None
     items: List[itemSchema] = []
 
-class userSchema(BaseModel):
+class UserSchema(BaseModel):
     _id: Optional[str] = None
 
     # google stuff
-    sub: Optional[str]
-    name: Optional[str]
-    email: Optional[str]
+    sub: Optional[str] = None
+    name: Optional[str] = None
+    email: Optional[str] = None
     picture: Optional[str] = None
 
     # user data
-    age: Optional[float] = None
+    gender: Optional[str] = None
+    age: Optional[int] = None
     weight: Optional[float] = None
     height: Optional[float] = None
-    activity: Optional[str] = None
+    activeness: Optional[int] = None
     
     # goals
     goal: Optional[int] = None

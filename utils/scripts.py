@@ -35,10 +35,12 @@ from os import environ as env
 
 def insertSampleData(file_path, db):
 	df = pd.read_csv(file_path)
+	df = df.fillna('')
 
 	def convert_to_schema(df):
 		restaurants = {}
-		for _, row in df.iterrows():
+		for index, row in df.iterrows():
+			print(index,row)
 			item = {
 				
 				"name": str(row['item_name']).lower(),
@@ -52,11 +54,13 @@ def insertSampleData(file_path, db):
 				restaurants[row['restaurant']]['items'].append(item)
 			else:
 				restaurants[row['restaurant']] = {
-					"_id": ObjectId(),
+					"_id": str(row['_id']),
 					"name": str(row['restaurant']).lower(),
 					"location": row['location'],
+					"logo": row['logo'],
 					"items": [item]
 				}
+				print(str(row['_id']))
 		
 		return list(restaurants.values())
 
@@ -76,7 +80,7 @@ def initDB():
 
 	# User collection
 	user_collection = db["users"]
-	user_collection.delete_many({})
+	# user_collection.delete_many({})
 
 	# items collection
 	rating_collection = db["items"]

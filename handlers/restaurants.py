@@ -14,26 +14,29 @@ class RestaurantHandler:
 
     async def get_all_restaurants(self, request: Request):
         restaurants = []
-        for restaurant in self.restaurants_collection.find().sort("name"):
+        projection = {"items": 0}
+        for restaurant in self.restaurants_collection.find(projection=projection).sort("name"):
             restaurant["_id"] = str(restaurant["_id"])
             restaurants.append(restaurant)
         if restaurant:
             return JSONResponse(restaurants, status_code=200)
         else:
-            raise HTTPException(status_code=404, detail="No professors found")
+            raise HTTPException(status_code=404, detail="No restaurants found")
         
-    async def search_restaurants(self, request: Request):
+    async def search_restaurants(self, request: Request, query: str):
         try:
-            data_bytes = await request.body()
-            data_str = data_bytes.decode('utf-8') 
-            data = json.loads(data_str, strict=False)
-            search_query = str(data["query"]).lower()
+            search_query = str(query).lower()
         except KeyError:
             raise HTTPException(status_code=400, detail="Missing or invalid 'query' parameter")
 
         filtered_restaurants = []
-        for restaurant in self.restaurants_collection.find({"name": {"$regex": f"^{search_query}"}}).sort("name"):
-            print(restaurant)
+        projection = {"items": 0}
+        # a regex pattern to match occurrences of the query anywhere within the name field
+        regex_pattern = {"$regex": search_query, "$options": "i"}  # Case insensitive match
+        query_filter = {"name": regex_pattern}
+        
+        for restaurant in self.restaurants_collection.find(query_filter, projection=projection).sort("name"):
+            # print(restaurant)
             restaurant["_id"] = str(restaurant["_id"])
             filtered_restaurants.append(restaurant)
 
@@ -41,4 +44,7 @@ class RestaurantHandler:
             return JSONResponse(filtered_restaurants, status_code=200)
         else:
             raise HTTPException(status_code=404, detail="No restaurants found")
+
+        
+    
 

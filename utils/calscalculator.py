@@ -1,14 +1,7 @@
-from fastapi import FastAPI
+
 from pydantic import BaseModel
+from models.schemas import UserSchema
 
-app = FastAPI()
-
-class UserInput(BaseModel):
-    sex: str
-    weight: float
-    height: float
-    age: int
-    activity_level: str
 
 def calculate_bmr(sex, weight, height, age):
     if sex.lower() in ["female", "f"]:
@@ -19,15 +12,15 @@ def calculate_bmr(sex, weight, height, age):
 
 def calculate_total_calories(bmr, activity_level):
     activity_multipliers = {
-        "sedentary": 1.25,
-        "light": 1.375,
-        "moderate": 1.550,
-        "active": 1.725
+        0: 1.25, # sedentary
+        1: 1.375, # light
+        2: 1.550, # moderate
+        3: 1.725 # active
     }
     return bmr * activity_multipliers[activity_level]
 
-@app.post("/calculate-calories/")
-async def calculate_calories(user_input: UserInput):
-    bmr = calculate_bmr(user_input.sex, user_input.weight, user_input.height, user_input.age)
-    total_calories = calculate_total_calories(bmr, user_input.activity_level)
-    return {"daily_calories_intake": total_calories}
+def calculate_calories(user_input: UserSchema):
+    bmr = calculate_bmr(str(user_input["gender"]), float(user_input["weight"]), float(user_input["height"]), int(user_input["age"]))
+    dailycalgoal = calculate_total_calories(bmr, user_input["activeness"])
+    
+    return dailycalgoal

@@ -18,13 +18,18 @@ if ENV_FILE:
 class Authenticator:
 	def __init__(self, db):
 		self.db = db
-		self.user_collection = db["users"]
+		self.userCollection = db["users"]
 		self.JWT_SECRET = env.get("JWT_SECRET")
 		self.jwtExpiryTime = int(env.get("JWT_EXPIRE_TIME"))
 
 	async def encode_jwt(self, userD, expire_time):
-		userD["exp"] = datetime.now(tz=timezone.utc) + timedelta(seconds=expire_time)
-		return jwt.encode(userD, self.JWT_SECRET, algorithm="HS256")
+		# userD["exp"] = datetime.now(tz=timezone.utc) + timedelta(seconds=expire_time)
+		print("final debug:")
+		print(userD)
+		encoded = jwt.encode(userD, self.JWT_SECRET, algorithm="HS256")
+		print("final encoded:")
+		print(encoded)
+		return encoded
 
 	async def decode_jwt(self, encoded_jwt):
 		return jwt.decode(encoded_jwt, self.JWT_SECRET, algorithms=["HS256"])
@@ -35,13 +40,23 @@ class Authenticator:
 		match = re.match(r"Bearer (.+)", authorization)
 		userData = {}
 		if match:
-			jwt_token = match.group(1)
-			# print(jwt_token)
+			# jwt_token = match.group(1)
+			# jwt_token = authorization.replace("Bearer ", "")
+			parts = authorization.split()
+			# Ensure the header has two parts: "Bearer" and the token
+			if len(parts) != 2 or parts[0].lower() != 'bearer':
+				raise HTTPException(status_code=401, detail="Invalid Authorization Header")
+			
+			jwt_token = parts[1]  # Extract the token part
+			print(jwt_token)
 			try:
+				print(41)
 				userData = await self.decode_jwt(jwt_token)
+				print(43)
+				print(userData)
 				existingUser = None
 				try:
-					existingUser = self.user_collection.find_one(
+					existingUser = self.userCollection.find_one(
 						{"sub": userData["sub"]},  # Query condition
 					)
 				except Exception as e:
@@ -50,10 +65,6 @@ class Authenticator:
 				if existingUser is not None:
 					userData["_id"] = str(existingUser["_id"])
 					print(f"USER FOUND: {userData}")
-							
-					# print(f"You have been temporarily banned from adding ratings. Please try again after {(self.banTimeout - timeDifference.total_seconds()) / 60} minutes.")
-					# raise HTTPException(status_code=403, detail=f"You have been temporarily banned from adding ratings. Please try again after {(self.banTimeout - timeDifference.total_seconds()) / 60} minutes.")
-				# print(userData)
 				return userData
 			except jwt.ExpiredSignatureError:
 				raise HTTPException(status_code=401, detail="Authorization Token Expired")
@@ -62,18 +73,28 @@ class Authenticator:
 			
 		else:
 			raise HTTPException(status_code=401, detail="No Authorization Token Received")
+		
+		return 
 
 	async def Verify_user(self, request: Request):
+	# 	# Access the headers
+	# 	headers = request.headers
+	# 	print(headers)
+
+	# # Accessing specific headers
+	# 	access_token = headers.get('Authorization')
+	# 	print(access_token)
+	# 	token = access_token
 		data = await request.json()
 		token = data['accessToken']
-		# print(f"'accessToken': {token}")
+		print(f"'accessToken': {token}")
 		headers = {'Authorization': f'Bearer {token}'}
 		async with httpx.AsyncClient() as client:
 			response = await client.get('https://www.googleapis.com/oauth2/v3/userinfo', headers=headers)
 			user_info = response.json()
 		if "error" in user_info:
 			return JSONResponse(user_info, status_code=400)
-		existingUser = self.user_collection.find_one({"$or": [{"email": user_info["email"]}, {"sub": user_info["sub"]}]})
+		existingUser = self.userCollection.find_one({"$or": [{"email": user_info["email"]}, {"sub": user_info["sub"]}]})
 		# print(f"userInfo: {user_info}")
 		userData = {
 			"sub": user_info.get("sub"),
@@ -102,7 +123,7 @@ class Authenticator:
 			return response
 		else:
 			userData["_id"] = ObjectId()
-			result = self.user_collection.insert_one(userData)
+			result = self.userCollection.insert_one(userData)
 			# if "sub" in userData:
 			# 	userData.pop("sub")
 			userData["_id"] = str(userData["_id"])
